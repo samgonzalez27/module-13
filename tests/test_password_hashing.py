@@ -21,3 +21,11 @@ def test_passwordhasher_instance_methods():
     assert hashed != raw
     assert hasher.verify(raw, hashed) is True
     assert hasher.verify("nope", hashed) is False
+
+
+def test_passwordhasher_with_deprecated_option():
+    # ensure the code path that passes a non-None `deprecated` value is exercised
+    hasher = PasswordHasher(deprecated="auto")
+    raw = "shortpass"
+    hashed = hasher.hash(raw)
+    assert hasher.verify(raw, hashed) is True

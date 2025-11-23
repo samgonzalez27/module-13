@@ -42,8 +42,16 @@ _default_hasher = PasswordHasher()
 
 
 def hash_password(raw_password: str) -> str:
+    """Hash `raw_password` using the default PasswordHasher instance.
+
+    Returns the encoded password string suitable for storage.
+    """
     return _default_hasher.hash(raw_password)
 
 
 def verify_password(raw_password: str, hashed: str) -> bool:
+    """Verify `raw_password` against the stored hash.
+
+    Returns True when the password matches, False otherwise.
+    """
     return _default_hasher.verify(raw_password, hashed)

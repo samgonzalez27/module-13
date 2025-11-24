@@ -10,4 +10,8 @@ __pycache__/
 htmlcov/
 .coverage
 
+test.db
+uvicorn.log
+uvicorn.out
+
 .env

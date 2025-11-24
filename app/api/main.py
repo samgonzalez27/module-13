@@ -46,6 +46,16 @@ def read_index():
     return {"status": "ok"}
 
 
+@app.get("/debug/headers")
+def debug_headers(request: Request):
+    """Debug-only endpoint: return request headers as a simple dict.
+
+    Use this from the Swagger UI (or curl) to confirm whether the
+    `Authorization` header is actually being sent to the server.
+    """
+    return dict(request.headers)
+
+
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting FastAPI Calculator app")

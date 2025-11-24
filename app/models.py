@@ -75,20 +75,12 @@ class Calculation(Base):
             The computed numeric result.
         """
         # local import to avoid circular imports at module import time
-        from . import operations as ops
+        # Use the CalculationFactory to obtain an operation object.
+        from .factory import CalculationFactory
 
-        mapping = {
-            "add": ops.add,
-            "subtract": ops.sub,
-            "multiply": ops.mul,
-            "divide": ops.div,
-        }
-
-        if self.type not in mapping:
-            raise ValueError(f"unsupported calculation type: {self.type!r}")
-
-        func = mapping[self.type]
-        computed = func(self.a, self.b)
+        factory = CalculationFactory()
+        op = factory.get(self.type)
+        computed = op.compute(self.a, self.b)
 
         if persist and (self.result is None or force):
             self.result = computed

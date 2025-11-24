@@ -58,4 +58,4 @@ COPY . .
 EXPOSE 8000
 
 # Run the application.
-CMD uvicorn app.main:app --reload
+CMD uvicorn app.api.main:app --reload

@@ -1,7 +1,8 @@
 """SQLAlchemy models for the application."""
 
 from sqlalchemy import Column, Integer, String, DateTime, func
-from sqlalchemy import Float
+from sqlalchemy import Float, ForeignKey
+from sqlalchemy.orm import relationship
 
 from .database import Base
 
@@ -57,6 +58,42 @@ class Calculation(Base):
     b = Column(Float, nullable=False)
     type = Column(String, nullable=False, index=True)
     result = Column(Float, nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+
+    # SQLAlchemy relationship to `User` (optional)
+    user = relationship("User", backref="calculations")
+
+    def compute_result(self, persist: bool = True, force: bool = False) -> float:
+        """Compute the calculation result using the operations module.
+
+        By default, the computed result is persisted to `self.result`. Set
+        `persist=False` to compute without modifying the model. If `force` is
+        True the stored `result` will be overwritten regardless of whether it
+        already exists.
+
+        Returns:
+            The computed numeric result.
+        """
+        # local import to avoid circular imports at module import time
+        from . import operations as ops
+
+        mapping = {
+            "add": ops.add,
+            "subtract": ops.sub,
+            "multiply": ops.mul,
+            "divide": ops.div,
+        }
+
+        if self.type not in mapping:
+            raise ValueError(f"unsupported calculation type: {self.type!r}")
+
+        func = mapping[self.type]
+        computed = func(self.a, self.b)
+
+        if persist and (self.result is None or force):
+            self.result = computed
+
+        return computed
 
     def __repr__(self) -> str:
         return f"<Calculation id={self.id!r} type={self.type!r} a={self.a!r} b={self.b!r} result={self.result!r}>"

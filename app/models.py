@@ -1,6 +1,7 @@
 """SQLAlchemy models for the application."""
 
 from sqlalchemy import Column, Integer, String, DateTime, func
+from sqlalchemy import Float
 
 from .database import Base
 
@@ -35,3 +36,30 @@ class User(Base):
             "email": self.email,
             "created_at": self.created_at,
         }
+
+
+
+class Calculation(Base):
+    """SQLAlchemy ORM model representing a calculation request/result.
+
+    Fields:
+    - id: primary key
+    - a: first numeric operand
+    - b: second numeric operand
+    - type: operation type (e.g. 'add', 'subtract', ...)
+    - result: optional numeric result
+    """
+
+    __tablename__ = "calculations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    a = Column(Float, nullable=False)
+    b = Column(Float, nullable=False)
+    type = Column(String, nullable=False, index=True)
+    result = Column(Float, nullable=True)
+
+    def __repr__(self) -> str:
+        return f"<Calculation id={self.id!r} type={self.type!r} a={self.a!r} b={self.b!r} result={self.result!r}>"
+
+    def to_dict(self) -> dict:
+        return {"id": self.id, "a": self.a, "b": self.b, "type": self.type, "result": self.result}

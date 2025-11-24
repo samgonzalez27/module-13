@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
 from typing import Literal
 
 
@@ -48,11 +48,29 @@ class UserRead(BaseModel):
 
 
 class CalculationCreate(BaseModel):
-    """Schema for creating a Calculation."""
+    """Schema for creating a Calculation.
+
+    This schema accepts case-insensitive operation names (e.g. "Add" or
+    "add") and normalizes them to the canonical lowercase values used by the
+    application.
+    """
 
     a: float
     b: float
-    type: CalcType
+    # accept string input and validate/normalize in a validator so inputs like
+    # "Add" are accepted and normalized to "add".
+    type: str
+
+    @field_validator("type", mode="before")
+    def normalize_type(cls, v) -> str:  # noqa: D401 - short validator
+        # run before pydantic coerces types so we can validate raw input
+        if not isinstance(v, str):
+            # raise ValueError so Pydantic will wrap as ValidationError
+            raise ValueError("type must be a string")
+        low = v.lower()
+        if low not in ("add", "subtract", "multiply", "divide"):
+            raise ValueError(f"unsupported calculation type: {v!r}")
+        return low
 
 
 class CalculationRead(BaseModel):

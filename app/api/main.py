@@ -3,7 +3,7 @@ import logging
 import time
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, Security
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -16,6 +16,7 @@ from ..core import models
 from ..core.database import SessionLocal, engine, Base
 from ..api.schemas import UserCreate, UserRead, LoginRequest, CalculationCreate, CalculationRead
 from ..auth.security import hash_password, verify_password, create_token, verify_token
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Header
 from typing import List
 
@@ -152,12 +153,20 @@ def token(payload: LoginRequest, db: Session = Depends(get_db)):
     return {"access_token": tok, "token_type": "bearer"}
 
 
-def get_current_user(authorization: str | None = Header(None, alias="Authorization"), db: Session = Depends(get_db)):
-    if not authorization:
+bearer_scheme = HTTPBearer()
+
+
+def get_current_user(credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme), db: Session = Depends(get_db)):
+    """Resolve the current user from an HTTP Bearer token.
+
+    Uses `HTTPBearer` so OpenAPI will include a Bearer security scheme and
+    the Swagger UI will show an Authorize button.
+    """
+    if credentials is None:
         raise HTTPException(status_code=401, detail="authorization required")
-    if not authorization.lower().startswith("bearer "):
+    if credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="invalid auth scheme")
-    token = authorization.split(None, 1)[1]
+    token = credentials.credentials
     payload = verify_token(token)
     if not payload or "sub" not in payload:
         raise HTTPException(status_code=401, detail="invalid token")

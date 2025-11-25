@@ -14,7 +14,7 @@ from ..config.logging_config import configure_logging
 from ..core.calculator import add, sub, mul, div
 from ..core import models
 from ..core.database import SessionLocal, engine, Base
-from ..api.schemas import UserCreate, UserRead, LoginRequest, CalculationCreate, CalculationRead
+from ..api.schemas import UserCreate, UserRead, UserReadWithToken, LoginRequest, CalculationCreate, CalculationRead
 from ..auth.security import hash_password, verify_password, create_token, verify_token
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Header
@@ -124,7 +124,7 @@ def get_db():
         db.close()
 
 
-@app.post("/users/register", response_model=UserRead)
+@app.post("/users/register", response_model=UserReadWithToken)
 def register_user(user: UserCreate, db: Session = Depends(get_db)):
     """Register a new user.
 
@@ -141,7 +141,11 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=400, detail="username or email already exists")
 
-    return UserRead.model_validate(db_user)
+    # create JWT for the newly registered user
+    tok = create_token({"sub": db_user.username})
+    user_data = UserRead.model_validate(db_user).model_dump()
+    user_data.update({"access_token": tok, "token_type": "bearer"})
+    return UserReadWithToken.model_validate(user_data)
 
 
 @app.post("/users/token")

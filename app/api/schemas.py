@@ -29,6 +29,12 @@ class UserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserReadWithToken(UserRead):
+    access_token: str
+    token_type: str = "bearer"
+    model_config = ConfigDict(from_attributes=True)
+
+
 class CalculationCreate(BaseModel):
     a: float
     b: float

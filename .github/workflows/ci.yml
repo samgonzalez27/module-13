@@ -50,6 +50,12 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Install Playwright browsers
+        run: |
+          source .venv/bin/activate
+          playwright install chromium
+          playwright install-deps chromium
+
       - name: Wait for Postgres
         run: |
           for i in {1..30}; do pg_isready -h localhost -p 5432 -U test && break || sleep 1; done
@@ -62,12 +68,19 @@ jobs:
           pip install pylint
           pylint app || true
 
-      - name: Run tests
+      - name: Run unit and integration tests
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
         run: |
           source .venv/bin/activate
-          pytest -q
+          pytest --ignore=tests/e2e/test_auth_e2e.py -q
+
+      - name: Run Playwright E2E tests
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+        run: |
+          source .venv/bin/activate
+          pytest tests/e2e/test_auth_e2e.py -v --tb=short
 
   build-and-push:
     name: Build and push Docker image

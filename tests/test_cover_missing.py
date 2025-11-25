@@ -114,6 +114,35 @@ def test_token_for_nonexistent_user_and_secret_param():
     assert security.verify_token(tok2, secret="wrong") is None
 
 
+def test_debug_headers_endpoint():
+    """Call the debug endpoint to exercise the header-dump return path."""
+    from app.api.main import app
+    from fastapi.testclient import TestClient
+
+    client = TestClient(app)
+    r = client.get("/debug/headers")
+    assert r.status_code == 200
+    assert isinstance(r.json(), dict)
+
+
+def test_get_current_user_wrong_scheme_direct_call():
+    """Call get_current_user directly with a non-bearer credentials object to hit the scheme-check branch."""
+    from fastapi.security import HTTPAuthorizationCredentials
+    from app.api.main import get_current_user
+    from fastapi import HTTPException
+
+    creds = HTTPAuthorizationCredentials(scheme="Basic", credentials="xyz")
+    try:
+        # db is not used before the scheme check, so None is fine here
+        get_current_user(creds, None, None)
+        raised = False
+    except HTTPException as exc:
+        raised = True
+        assert exc.status_code == 401
+        assert exc.detail == "invalid auth scheme"
+    assert raised
+
+
 def test_verify_token_raises_and_is_caught():
     from app.auth import security
 

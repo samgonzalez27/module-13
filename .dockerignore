@@ -4,31 +4,65 @@
 # For more help, visit the .dockerignore file reference guide at
 # https://docs.docker.com/go/build-context-dockerignore/
 
+# OS files
 **/.DS_Store
+
+# Python
 **/__pycache__
 **/.venv
-**/.classpath
-**/.dockerignore
-**/.env
-**/.git
-**/.gitignore
+**/*.py[cod]
+**/*.pyo
+**/*.pyd
+**/.Python
+**/pip-log.txt
+
+# Testing
+**/tests
+**/.pytest_cache
+**/.coverage
+**/htmlcov
+**/test.db
+**/uvicorn.log
+**/uvicorn.out
+**/*.log
+
+# IDE/Editor
+**/.vscode
+**/.idea
+**/.vs
 **/.project
 **/.settings
-**/.toolstarget
-**/.vs
-**/.vscode
+**/.classpath
 **/*.*proj.user
 **/*.dbmdl
 **/*.jfm
-**/bin
-**/charts
+
+# Git
+**/.git
+**/.gitignore
+
+# Docker (don't copy Docker files into the image)
+**/.dockerignore
+**/Dockerfile*
 **/docker-compose*
 **/compose.y*ml
-**/Dockerfile*
-**/node_modules
-**/npm-debug.log
-**/obj
+
+# Environment/Secrets
+**/.env
+**/.env.*
 **/secrets.dev.yaml
 **/values.dev.yaml
+
+# Build artifacts
+**/bin
+**/obj
+**/node_modules
+**/npm-debug.log
+**/.toolstarget
+**/charts
+
+# Documentation (optional, saves space)
 LICENSE
 README.md
+README.Docker.md
+**/*.md

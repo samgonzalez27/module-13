@@ -30,8 +30,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install system deps for psycopg2
-        run: sudo apt-get update && sudo apt-get install -y libpq-dev build-essential
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpq-dev build-essential \
+            libnss3 libnspr4 libatk1.0-0t64 libatk-bridge2.0-0t64 \
+            libcups2t64 libdrm2 libxkbcommon0 libxcomposite1 \
+            libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
 
       - name: Install dependencies
         run: |
@@ -39,9 +44,7 @@ jobs:
           python -m pip install -r requirements.txt
 
       - name: Install Playwright browsers
-        run: |
-          playwright install chromium
-          playwright install-deps chromium
+        run: playwright install chromium
 
       - name: Run unit and integration tests (Postgres)
         env:

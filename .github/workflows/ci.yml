@@ -42,9 +42,12 @@ jobs:
 
       - name: Install system packages and Python dependencies
         run: |
-          # Install system deps required to build psycopg2 if a wheel is not available
+          # Install system deps required to build psycopg2 and Playwright
           sudo apt-get update
-          sudo apt-get install -y libpq-dev gcc
+          sudo apt-get install -y libpq-dev gcc \
+            libnss3 libnspr4 libatk1.0-0t64 libatk-bridge2.0-0t64 \
+            libcups2t64 libdrm2 libxkbcommon0 libxcomposite1 \
+            libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
           python -m venv .venv
           source .venv/bin/activate
           pip install --upgrade pip
@@ -54,7 +57,6 @@ jobs:
         run: |
           source .venv/bin/activate
           playwright install chromium
-          playwright install-deps chromium
 
       - name: Wait for Postgres
         run: |

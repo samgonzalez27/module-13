@@ -157,7 +157,7 @@ def test_token_endpoint_invalid_credentials():
     from app.api.main import app
 
     client = TestClient(app)
-    r = client.post("/users/token", json={"username": "nope", "password": "bad"})
+    r = client.post("/users/token", json={"email": "nope@example.com", "password": "bad"})
     assert r.status_code == 401
     assert r.json().get("detail") == "invalid credentials"
 
@@ -168,8 +168,9 @@ def test_update_and_delete_nonexistent_calc():
 
     client = TestClient(app)
     uname = f"user-{uuid.uuid4().hex}"
-    client.post("/users/register", json={"username": uname, "email": f"{uname}@example.com", "password": "pw"})
-    tok = client.post("/users/token", json={"username": uname, "password": "pw"}).json()["access_token"]
+    email = f"{uname}@example.com"
+    client.post("/users/register", json={"username": uname, "email": email, "password": "pw"})
+    tok = client.post("/users/token", json={"email": email, "password": "pw"}).json()["access_token"]
     headers = {"Authorization": f"Bearer {tok}"}
 
     # update non-existent

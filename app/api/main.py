@@ -150,7 +150,7 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/users/token")
 def token(payload: LoginRequest, db: Session = Depends(get_db)):
-    db_user = db.query(models.User).filter(models.User.username == payload.username).first()
+    db_user = db.query(models.User).filter(models.User.email == payload.email).first()
     if not db_user or not verify_password(payload.password, db_user.password_hash):
         raise HTTPException(status_code=401, detail="invalid credentials")
     tok = create_token({"sub": db_user.username})
@@ -239,11 +239,11 @@ def delete_calculation(calc_id: int, current_user=Depends(get_current_user), db:
 
 @app.post("/users/login")
 def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
-    """Authenticate a user by username and password.
+    """Authenticate a user by email and password.
 
     Returns a JWT (`access_token`, `token_type`) on success, 401 otherwise.
     """
-    db_user = db.query(models.User).filter(models.User.username == payload.username).first()
+    db_user = db.query(models.User).filter(models.User.email == payload.email).first()
     if not db_user or not verify_password(payload.password, db_user.password_hash):
         raise HTTPException(status_code=401, detail="invalid credentials")
 

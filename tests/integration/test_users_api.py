@@ -42,18 +42,18 @@ def test_login_success_and_failures():
     assert r.status_code == 200
 
     # correct credentials -> success and return token
-    r_login = client.post("/users/login", json={"username": username, "password": password})
+    r_login = client.post("/users/login", json={"email": email, "password": password})
     assert r_login.status_code == 200
     d = r_login.json()
     assert "access_token" in d
     assert d["token_type"] == "bearer"
 
     # wrong password -> unauthorized
-    r_wrong = client.post("/users/login", json={"username": username, "password": "wrong"})
+    r_wrong = client.post("/users/login", json={"email": email, "password": "wrong"})
     assert r_wrong.status_code == 401
     assert r_wrong.json()["detail"] == "invalid credentials"
 
-    # non-existent user -> unauthorized
-    r_no = client.post("/users/login", json={"username": "no_such_user", "password": "pw"})
+    # non-existent email -> unauthorized
+    r_no = client.post("/users/login", json={"email": "noone@example.com", "password": "pw"})
     assert r_no.status_code == 401
     assert r_no.json()["detail"] == "invalid credentials"

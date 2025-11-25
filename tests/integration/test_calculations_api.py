@@ -7,8 +7,8 @@ from app.api.main import app
 client = TestClient(app)
 
 
-def get_token(username: str, password: str):
-    r = client.post("/users/token", json={"username": username, "password": password})
+def get_token(email: str, password: str):
+    r = client.post("/users/token", json={"email": email, "password": password})
     assert r.status_code == 200
     return r.json()["access_token"]
 
@@ -23,7 +23,7 @@ def test_calculation_crud_flow():
     r = client.post("/users/register", json={"username": username, "email": email, "password": password})
     assert r.status_code == 200
 
-    token = get_token(username, password)
+    token = get_token(email, password)
     headers = {"Authorization": f"Bearer {token}"}
 
     # create calculation

@@ -57,5 +57,5 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
         run: |
-          # Run Playwright E2E tests with server spun up
-          python -m pytest tests/e2e/test_auth_e2e.py -v --tb=short
+          # Run Playwright E2E tests with server spun up (no coverage)
+          python -m pytest tests/e2e/test_auth_e2e.py -v --tb=short --no-cov

@@ -82,7 +82,7 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
         run: |
           source .venv/bin/activate
-          pytest tests/e2e/test_auth_e2e.py -v --tb=short
+          pytest tests/e2e/test_auth_e2e.py -v --tb=short --no-cov
 
   build-and-push:
     name: Build and push Docker image

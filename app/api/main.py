@@ -237,14 +237,15 @@ def delete_calculation(calc_id: int, current_user=Depends(get_current_user), db:
     return
 
 
-@app.post("/users/login", response_model=UserRead)
+@app.post("/users/login")
 def login_user(payload: LoginRequest, db: Session = Depends(get_db)):
     """Authenticate a user by username and password.
 
-    Returns `UserRead` on success, 401 otherwise.
+    Returns a JWT (`access_token`, `token_type`) on success, 401 otherwise.
     """
     db_user = db.query(models.User).filter(models.User.username == payload.username).first()
     if not db_user or not verify_password(payload.password, db_user.password_hash):
         raise HTTPException(status_code=401, detail="invalid credentials")
 
-    return UserRead.model_validate(db_user)
+    tok = create_token({"sub": db_user.username})
+    return {"access_token": tok, "token_type": "bearer"}

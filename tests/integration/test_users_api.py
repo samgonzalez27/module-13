@@ -41,12 +41,12 @@ def test_login_success_and_failures():
     r = client.post("/users/register", json={"username": username, "email": email, "password": password})
     assert r.status_code == 200
 
-    # correct credentials -> success
+    # correct credentials -> success and return token
     r_login = client.post("/users/login", json={"username": username, "password": password})
     assert r_login.status_code == 200
     d = r_login.json()
-    assert d["username"] == username
-    assert d["email"] == email
+    assert "access_token" in d
+    assert d["token_type"] == "bearer"
 
     # wrong password -> unauthorized
     r_wrong = client.post("/users/login", json={"username": username, "password": "wrong"})

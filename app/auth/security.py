@@ -11,8 +11,12 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import time
 from typing import Dict, Any
+
+import jwt
+from jwt import PyJWTError
 
 
 class PasswordHasher:
@@ -43,7 +47,7 @@ def verify_password(raw_password: str, hashed: str) -> bool:
 
 
 # Minimal JWT-like functions (HMAC-SHA256, no external dependency)
-_JWT_SECRET = "dev-secret-change-me"
+_JWT_SECRET = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 
 def _b64url_encode(data: bytes) -> str:
@@ -58,35 +62,25 @@ def _b64url_decode(s: str) -> bytes:
 
 
 def create_token(payload: Dict[str, Any], secret: str | None = None, expire_seconds: int = 3600) -> str:
+    """Create a JWT using HS256.
+
+    The `secret` parameter is optional and overrides the environment `SECRET_KEY`.
+    """
     if secret is None:
         secret = _JWT_SECRET
-    header = {"alg": "HS256", "typ": "JWT"}
     now = int(time.time())
     body = {**payload, "iat": now, "exp": now + expire_seconds}
-    h = json.dumps(header, separators=(",", ":"), sort_keys=True).encode("utf-8")
-    p = json.dumps(body, separators=(",", ":"), sort_keys=True).encode("utf-8")
-    seg1 = _b64url_encode(h)
-    seg2 = _b64url_encode(p)
-    signing_input = f"{seg1}.{seg2}".encode("ascii")
-    sig = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
-    seg3 = _b64url_encode(sig)
-    return f"{seg1}.{seg2}.{seg3}"
+    token = jwt.encode(body, secret, algorithm="HS256")
+    # PyJWT returns a string in modern versions
+    return token
 
 
 def verify_token(token: str, secret: str | None = None) -> Dict[str, Any] | None:
+    """Verify the JWT and return the payload or None on failure."""
     if secret is None:
         secret = _JWT_SECRET
     try:
-        seg1, seg2, seg3 = token.split(".")
-        signing_input = f"{seg1}.{seg2}".encode("ascii")
-        sig = _b64url_decode(seg3)
-        expected = hmac.new(secret.encode("utf-8"), signing_input, hashlib.sha256).digest()
-        if not hmac.compare_digest(sig, expected):
-            return None
-        payload_bytes = _b64url_decode(seg2)
-        payload = json.loads(payload_bytes.decode("utf-8"))
-        if "exp" in payload and int(time.time()) > int(payload["exp"]):
-            return None
+        payload = jwt.decode(token, secret, algorithms=["HS256"])
         return payload
-    except Exception:
+    except PyJWTError:
         return None

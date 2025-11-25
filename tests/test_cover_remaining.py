@@ -48,3 +48,12 @@ def test_user_repr_and_to_dict_cover():
     # repr works
     r = repr(u)
     assert "User" in r
+
+
+def test_read_index_serves_file():
+    # When the static index exists, the root should serve the file (HTML)
+    r = client.get("/")
+    assert r.status_code == 200
+    ct = r.headers.get("content-type", "")
+    assert "text/html" in ct
+    assert "<!doctype html" in r.text.lower()

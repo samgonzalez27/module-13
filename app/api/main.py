@@ -153,16 +153,24 @@ def token(payload: LoginRequest, db: Session = Depends(get_db)):
     return {"access_token": tok, "token_type": "bearer"}
 
 
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
-def get_current_user(credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
+    authorization: str | None = Header(None, alias="Authorization"),
+    db: Session = Depends(get_db),
+):
     """Resolve the current user from an HTTP Bearer token.
 
     Uses `HTTPBearer` so OpenAPI will include a Bearer security scheme and
     the Swagger UI will show an Authorize button.
     """
     if credentials is None:
+        # If an Authorization header was provided but HTTPBearer didn't
+        # return credentials, it means the scheme wasn't a Bearer token.
+        if authorization:
+            raise HTTPException(status_code=401, detail="invalid auth scheme")
         raise HTTPException(status_code=401, detail="authorization required")
     if credentials.scheme.lower() != "bearer":
         raise HTTPException(status_code=401, detail="invalid auth scheme")

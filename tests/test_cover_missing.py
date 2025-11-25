@@ -10,8 +10,10 @@ def test_token_valid_tamper_and_expire():
     payload = security.verify_token(tok)
     assert payload and payload["sub"] == "alice"
 
-    # tamper with the token signature
-    tampered = tok[:-1] + ("A" if tok[-1] != "A" else "B")
+    # tamper with the token payload segment (guaranteed to invalidate signature)
+    seg1, seg2, seg3 = tok.split('.')
+    tampered_seg2 = seg2[:-1] + ("A" if seg2[-1] != "A" else "B")
+    tampered = f"{seg1}.{tampered_seg2}.{seg3}"
     assert security.verify_token(tampered) is None
 
     # expired token should be rejected
@@ -135,7 +137,6 @@ def test_get_current_user_wrong_scheme_direct_call():
 
     creds = HTTPAuthorizationCredentials(scheme="Basic", credentials="xyz")
     try:
-        # Call with keyword args to avoid positional/DI wrapper differences.
         get_current_user(credentials=creds, authorization=None, db=None)
         raised = False
     except HTTPException as exc:

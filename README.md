@@ -4,11 +4,11 @@ A FastAPI-based calculator application with JWT authentication, PostgreSQL datab
 
 ## Docker Hub
 
-**Image:** [samgonzalez27/fastapi-calculator-docker](https://hub.docker.com/r/samgonzalez27/fastapi-calculator-docker)
+**Image:** [samgonzalezalberto/module-13](https://hub.docker.com/r/samgonzalezalberto/module-13)
 
 ```bash
-docker pull samgonzalez27/fastapi-calculator-docker:latest
-docker run -p 8000:8000 samgonzalez27/fastapi-calculator-docker:latest
+docker pull samgonzalezalberto/module-13:latest
+docker run -p 8000:8000 samgonzalezalberto/module-13:latest
 ```
 
 ## Features
@@ -173,7 +173,7 @@ GitHub Actions workflow (`.github/workflows/ci.yml`):
 ## Submission Checklist
 
 - **GitHub Repository:** [https://github.com/samgonzalez27/module-13](https://github.com/samgonzalez27/module-13)
-- **Docker Hub:** [https://hub.docker.com/r/samgonzalez27/fastapi-calculator-docker](https://hub.docker.com/r/samgonzalez27/fastapi-calculator-docker)
+- **Docker Hub:** [https://hub.docker.com/r/samgonzalezalberto/module-13](https://hub.docker.com/r/samgonzalezalberto/module-13)
 
 **Required Screenshots:**
 1. GitHub Actions showing successful workflow run

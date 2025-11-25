@@ -1,5 +1,6 @@
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -7,6 +8,9 @@ from fastapi.testclient import TestClient
 
 from app.api import main
 
+
+# Get project root (where app/ directory is)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 client = TestClient(main.app)
 
@@ -32,7 +36,7 @@ print("OK")
         [sys.executable, "-c", code],
         capture_output=True,
         text=True,
-        cwd="/home/samuel/school-projects/module-13",
+        cwd=PROJECT_ROOT,
     )
     assert result.returncode == 0, f"Failed: {result.stderr}"
     assert "OK" in result.stdout

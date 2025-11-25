@@ -5,31 +5,230 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Calculator UI</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 400px;
+            margin: 2rem auto;
+            padding: 1rem;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-weight: 500;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+
+        select {
+            background: #fff;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+            background: #eafaf1;
+            border: 1px solid #27ae60;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+
+        .result.error {
+            background: #fdecea;
+            border: 1px solid #e74c3c;
+        }
+
+        .auth-links {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .auth-links a {
+            color: #3498db;
+            margin: 0 0.5rem;
+        }
+
+        .auth-status {
+            text-align: center;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #eafaf1;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+
+        .auth-status.logged-out {
+            background: #fef9e7;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 0.875rem;
+            padding: 0;
+            text-decoration: underline;
+            width: auto;
+            display: inline;
+        }
+
+        .logout-btn:hover {
+            background: none;
+            color: #c0392b;
+        }
+    </style>
 </head>
 
 <body>
     <h1>Calculator</h1>
-    <label>a: <input id="a" type="number" value="2" step="any" /></label>
-    <label>b: <input id="b" type="number" value="3" step="any" /></label>
-    <select id="op">
-        <option value="add">+</option>
-        <option value="sub">-</option>
-        <option value="mul">*</option>
-        <option value="div">/</option>
-    </select>
-    <button id="go">Compute</button>
-    <pre id="out"></pre>
+
+    <div id="authStatus" class="auth-status logged-out">
+        Not logged in
+    </div>
+
+    <form id="calcForm">
+        <div class="form-group">
+            <label for="a">First Number (a)</label>
+            <input id="a" type="number" value="2" step="any" placeholder="Enter first number" />
+        </div>
+
+        <div class="form-group">
+            <label for="b">Second Number (b)</label>
+            <input id="b" type="number" value="3" step="any" placeholder="Enter second number" />
+        </div>
+
+        <div class="form-group">
+            <label for="op">Operation</label>
+            <select id="op">
+                <option value="add">+ Add</option>
+                <option value="sub">− Subtract</option>
+                <option value="mul">× Multiply</option>
+                <option value="div">÷ Divide</option>
+            </select>
+        </div>
+
+        <button type="submit" id="go">Compute</button>
+    </form>
+
+    <div id="out" class="result" style="display: none;"></div>
+
+    <div class="auth-links">
+        <span id="guestLinks">
+            <a href="/static/login.html">Login</a> |
+            <a href="/static/register.html">Register</a>
+        </span>
+        <span id="userLinks" style="display: none;">
+            <button class="logout-btn" id="logoutBtn">Logout</button>
+        </span>
+    </div>
 
     <script>
-        document.getElementById('go').addEventListener('click', async () => {
-            const a = document.getElementById('a').value
-            const b = document.getElementById('b').value
-            const op = document.getElementById('op').value
-            const url = `/${op}?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`
-            const res = await fetch(url)
-            const text = await res.text()
-            document.getElementById('out').textContent = `status: ${res.status}\n${text}`
-        })
+        const authStatus = document.getElementById('authStatus');
+        const guestLinks = document.getElementById('guestLinks');
+        const userLinks = document.getElementById('userLinks');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const resultBox = document.getElementById('out');
+
+        // Check login status on page load
+        function updateAuthStatus() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                authStatus.textContent = '✓ Logged in';
+                authStatus.classList.remove('logged-out');
+                guestLinks.style.display = 'none';
+                userLinks.style.display = 'inline';
+            } else {
+                authStatus.textContent = 'Not logged in';
+                authStatus.classList.add('logged-out');
+                guestLinks.style.display = 'inline';
+                userLinks.style.display = 'none';
+            }
+        }
+
+        updateAuthStatus();
+
+        // Logout handler
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('token_type');
+            updateAuthStatus();
+        });
+
+        // Calculator form submission
+        document.getElementById('calcForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const a = document.getElementById('a').value;
+            const b = document.getElementById('b').value;
+            const op = document.getElementById('op').value;
+            const url = `/${op}?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`;
+
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+
+                resultBox.style.display = 'block';
+
+                if (res.ok) {
+                    resultBox.classList.remove('error');
+                    resultBox.textContent = `${a} ${getOpSymbol(op)} ${b} = ${data.result}`;
+                } else {
+                    resultBox.classList.add('error');
+                    resultBox.textContent = `Error: ${data.detail || 'Unknown error'}`;
+                }
+            } catch (error) {
+                resultBox.style.display = 'block';
+                resultBox.classList.add('error');
+                resultBox.textContent = 'Network error. Please try again.';
+            }
+        });
+
+        function getOpSymbol(op) {
+            const symbols = { add: '+', sub: '−', mul: '×', div: '÷' };
+            return symbols[op] || op;
+        }
     </script>
 </body>
 
